@@ -68,12 +68,12 @@ class PIDFastController(Controller):
         pitch = float(next_waypoint.record().split(",")[4])
 
         if self.region == 1:
-            if sharp_error < 0.68 or current_speed <= 90:
+            if sharp_error < 0.70 or current_speed <= 95:
                 throttle = 1
                 brake = 0
             else:
                 throttle = -1
-                brake = 1
+                brake = 0.7
         elif self.region == 2:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
@@ -87,10 +87,10 @@ class PIDFastController(Controller):
                 self.brake_counter += 1
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
-            elif sharp_error >= 0.67 and current_speed > 70:
+            elif sharp_error >= 0.70 and current_speed > 80:
                 throttle = 0
                 brake = 0.4
-            elif wide_error > 0.09 and current_speed > 92: # wide turn
+            elif wide_error > 0.09 and current_speed > 95: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
                 brake = 0
             else:
@@ -109,6 +109,13 @@ class PIDFastController(Controller):
         
         # if keyboard.is_pressed("space"):
         #      print(self.agent.vehicle.transform.record())
+
+        if (self.agent.vehicle.transform.location.x >= 2010) and (self.agent.vehicle.transform.location.x <= 2130) and (self.agent.vehicle.transform.location.z >= 3415) and (self.agent.vehicle.transform.location.z <= 3440) :
+            brake = 0.99999
+            throttle = 0.5  #点2大弯道
+
+        if (self.agent.vehicle.transform.location.x >= 2350) and (self.agent.vehicle.transform.location.x <= 2400) and (self.agent.vehicle.transform.location.z >= 3680) and (self.agent.vehicle.transform.location.z <= 3737) :
+            brake = 0.4
         
         return VehicleControl(throttle=throttle, steering=steering, brake=brake, gear=gear)
 
